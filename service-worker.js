@@ -1,16 +1,16 @@
-const CACHE = 'reel-stock-shell-v2-qr';
-const SHELL = [
+const CACHE_NAME = 'reel-stock-camera-fix-v4';
+const APP_SHELL = [
   './',
   './index.html',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(SHELL))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
   );
   self.skipWaiting();
 });
@@ -18,27 +18,24 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// Cache-first for the GitHub shell only.
-// The Google Apps Script app inside the iframe remains live/network-based.
 self.addEventListener('fetch', event => {
-  const req = event.request;
-  const url = new URL(req.url);
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
 
-  if (url.origin === self.location.origin) {
-    event.respondWith(
-      caches.match(req).then(cached =>
-        cached || fetch(req).then(resp => {
-          const copy = resp.clone();
-          caches.open(CACHE).then(cache => cache.put(req, copy));
-          return resp;
-        })
-      )
-    );
-  }
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        return response;
+      });
+    })
+  );
 });

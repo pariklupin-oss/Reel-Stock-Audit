@@ -8,260 +8,295 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Reel Stock">
-  <title>Reel Stock System</title>
 
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <title>Reel Stock System</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 
   <style>
     :root {
-      --navy: #0b315b;
-      --blue: #0f6ee8;
-      --bg: #eef3f8;
-      --text: #142033;
-      --muted: #667085;
-      --white: #ffffff;
+      --navy:#0b315b;
+      --bg:#eef3f8;
+      --white:#fff;
+      --line:#dce5ef;
+      --blue:#0f6ee8;
     }
-
-    * { box-sizing: border-box; }
-
+    * { box-sizing:border-box; }
     html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-      overflow: hidden;
+      margin:0; width:100%; height:100%;
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      overflow:hidden;
     }
-
-    .app-shell {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      background: var(--white);
+    .shell {
+      position:fixed; inset:0;
+      display:flex; flex-direction:column;
+      background:#fff;
     }
-
-    .topbar {
-      flex: 0 0 auto;
-      min-height: 54px;
-      padding: env(safe-area-inset-top) 12px 0;
-      background: var(--navy);
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid rgba(255,255,255,.12);
+    .bar {
+      min-height:56px;
+      padding-top:env(safe-area-inset-top);
+      background:var(--navy);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      padding-left:12px;
+      padding-right:12px;
+      gap:10px;
     }
-
-    .topbar-inner {
-      width: 100%;
-      min-height: 54px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .logo {
+      width:40px; height:40px; border-radius:9px;
+      object-fit:cover; flex:0 0 auto; background:#fff;
     }
-
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 9px;
-      object-fit: cover;
-      background: white;
-      flex: 0 0 auto;
+    .brand { flex:1; min-width:0; }
+    .title { font-size:16px; font-weight:800; line-height:1.05; }
+    .sub { font-size:10px; opacity:.82; margin-top:3px; }
+    .btn {
+      border:1px solid rgba(255,255,255,.45);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      border-radius:9px;
+      padding:8px 10px;
+      font-size:12px;
+      font-weight:700;
+      text-decoration:none;
+      cursor:pointer;
+      white-space:nowrap;
     }
-
-    .brand {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .brand-title {
-      font-size: 16px;
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: .2px;
-    }
-
-    .brand-sub {
-      font-size: 10px;
-      opacity: .84;
-      margin-top: 3px;
-    }
-
-    .open-btn {
-      border: 1px solid rgba(255,255,255,.45);
-      background: rgba(255,255,255,.08);
-      color: white;
-      border-radius: 9px;
-      padding: 8px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .frame-wrap {
-      flex: 1 1 auto;
-      min-height: 0;
-      position: relative;
-      background: white;
-    }
-
-    iframe {
-      border: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: white;
-    }
-
+    #installBtn { display:none; }
+    .wrap { flex:1; min-height:0; position:relative; }
+    iframe { width:100%; height:100%; border:0; display:block; background:#fff; }
     .loading {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f7f9fc;
-      z-index: 3;
-      transition: opacity .2s ease;
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:#f7f9fc; z-index:5;
+      transition:opacity .2s ease;
     }
-
-    .loading.hide {
-      opacity: 0;
-      pointer-events: none;
+    .loading.hide { opacity:0; pointer-events:none; }
+    .card {
+      width:min(88vw,360px);
+      text-align:center;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:24px;
+      box-shadow:0 12px 34px rgba(11,49,91,.12);
     }
-
-    .load-card {
-      width: min(88vw, 360px);
-      text-align: center;
-      background: white;
-      padding: 24px;
-      border-radius: 18px;
-      box-shadow: 0 12px 34px rgba(11,49,91,.12);
-      border: 1px solid #e0e7ef;
+    .biglogo { width:90px; height:90px; border-radius:22px; object-fit:cover; }
+    .card h2 { margin:12px 0 5px; font-size:20px; }
+    .card p { margin:0; color:#667085; font-size:13px; line-height:1.45; }
+    .spin {
+      width:28px; height:28px; border-radius:50%;
+      border:3px solid #d9e3ef; border-top-color:var(--blue);
+      margin:18px auto 0; animation:spin .85s linear infinite;
     }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    .load-logo {
-      width: 88px;
-      height: 88px;
-      border-radius: 22px;
-      object-fit: cover;
-      margin-bottom: 12px;
-    }
+    .scanTop{border:1px solid rgba(255,255,255,.48);background:#0f6ee8;color:#fff;border-radius:9px;padding:8px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+    .scannerModal{position:fixed;inset:0;background:rgba(4,16,32,.78);z-index:1000;display:none;align-items:flex-end;justify-content:center;padding:10px}
+    .scannerModal.show{display:flex}
+    .scannerSheet{width:min(100%,560px);background:#fff;border-radius:18px;padding:14px;max-height:94vh;overflow:auto}
+    .scannerHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .scannerHead h3{margin:0;font-size:18px;color:#142033}
+    .closeScan{width:44px;height:44px;border:1px solid #d7e0ea;border-radius:10px;background:#fff;font-size:22px}
+    .scanMode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+    .scanMode button{min-height:44px;border:1px solid #cdd7e6;background:#fff;border-radius:10px;font-weight:800;font-size:14px}
+    .scanMode button.active{border-color:#0f6ee8;background:#eaf2ff;color:#0f6ee8}
+    #qrReaderTop{width:100%;background:#0b1220;border-radius:12px;overflow:hidden}
+    .scanMsg{margin-top:10px;padding:10px;border-radius:10px;font-size:12px;line-height:1.4;display:none}
+    .scanMsg.show{display:block}
+    .scanMsg.bad{background:#ffeded;color:#962a23}
+    .scanMsg.ok{background:#e9f8ee;color:#126330}
 
-    .load-title {
-      font-weight: 800;
-      font-size: 20px;
-      margin-bottom: 7px;
-    }
-
-    .load-sub {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .spinner {
-      width: 28px;
-      height: 28px;
-      border: 3px solid #d9e3ef;
-      border-top-color: var(--blue);
-      border-radius: 50%;
-      margin: 18px auto 0;
-      animation: spin .85s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .offline {
-      display: none;
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: calc(12px + env(safe-area-inset-bottom));
-      z-index: 10;
-      background: #fff2cc;
-      color: #6f4b00;
-      border: 1px solid #e5c35d;
-      border-radius: 11px;
-      padding: 10px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .offline.show { display: block; }
-
-    @media (display-mode: standalone) {
-      .topbar { min-height: 50px; }
-    }
   </style>
 </head>
-
 <body>
-  <main class="app-shell">
-    <header class="topbar">
-      <div class="topbar-inner">
-        <img class="brand-icon" src="./icons/icon-192.png" alt="Reel Stock">
-        <div class="brand">
-          <div class="brand-title">REEL STOCK SYSTEM</div>
-          <div class="brand-sub">Starish Autopac Pvt. Ltd.</div>
-        </div>
-        <a class="open-btn" href="https://script.google.com/macros/s/AKfycbzNPHdaxSujRw2HfXqunbiCqooSehdVaFV9xIcUaVtqCiJdtx8zk0X3QzpjaOLd2fMq/exec" target="_blank" rel="noopener">Open Direct</a>
+  <main class="shell">
+    <header class="bar">
+      <img class="logo" src="./icon-192.png" alt="Reel Stock">
+      <div class="brand">
+        <div class="title">REEL STOCK SYSTEM</div>
+        <div class="sub">Starish Autopac Pvt. Ltd.</div>
       </div>
+      <button class="scanTop" onclick="openTopScanner()">Scan QR</button>
+      <button id="installBtn" class="btn">Install</button>
+      <a class="btn" href="https://script.google.com/macros/s/AKfycbzNPHdaxSujRw2HfXqunbiCqooSehdVaFV9xIcUaVtqCiJdtx8zk0X3QzpjaOLd2fMq/exec" target="_blank" rel="noopener">Open Direct</a>
     </header>
 
-    <section class="frame-wrap">
-      <div class="loading" id="loading">
-        <div class="load-card">
-          <img class="load-logo" src="./icons/icon-192.png" alt="">
-          <div class="load-title">Reel Stock System</div>
-          <div class="load-sub">Loading the live physical reel counting system...</div>
-          <div class="spinner"></div>
+    <section class="wrap">
+      <div id="loading" class="loading">
+        <div class="card">
+          <img class="biglogo" src="./icon-192.png" alt="">
+          <h2>Reel Stock System</h2>
+          <p>Loading live physical reel counting system...</p>
+          <div class="spin"></div>
         </div>
       </div>
 
       <iframe
         id="appFrame"
-        title="Reel Stock System"
         src="https://script.google.com/macros/s/AKfycbzNPHdaxSujRw2HfXqunbiCqooSehdVaFV9xIcUaVtqCiJdtx8zk0X3QzpjaOLd2fMq/exec"
+        title="Reel Stock System"
         allow="camera; clipboard-read; clipboard-write"
-        referrerpolicy="strict-origin-when-cross-origin">
-      </iframe>
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </section>
   </main>
 
-  <div id="offline" class="offline">
-    Internet connection is required to access the live Reel Stock System.
+  <div id="scannerModalTop" class="scannerModal">
+    <div class="scannerSheet">
+      <div class="scannerHead">
+        <div>
+          <h3>Scan Reel QR / Barcode</h3>
+          <div style="font-size:12px;color:#667085;margin-top:3px">Camera runs directly on this GitHub app.</div>
+        </div>
+        <button class="closeScan" onclick="closeTopScanner()">×</button>
+      </div>
+
+      <div class="scanMode">
+        <button id="modeReelTop" class="active" onclick="setTopScanMode('Reel No')">Reel No</button>
+        <button id="modeMillTop" onclick="setTopScanMode('Mill No')">Mill No</button>
+      </div>
+
+      <div id="qrReaderTop"></div>
+      <div id="scanMsgTop" class="scanMsg"></div>
+    </div>
   </div>
 
-  <script>
-    const frame = document.getElementById('appFrame');
-    const loading = document.getElementById('loading');
-    const offline = document.getElementById('offline');
+<script>
+  const loading = document.getElementById('loading');
+  const frame = document.getElementById('appFrame');
+  const installBtn = document.getElementById('installBtn');
+  let deferredPrompt = null;
 
-    frame.addEventListener('load', () => {
-      setTimeout(() => loading.classList.add('hide'), 250);
+  let topScanner=null;
+  let topScannerRunning=false;
+  let topScanMode='Reel No';
+
+  function setTopScanMode(mode){
+    topScanMode=mode;
+    document.getElementById('modeReelTop').classList.toggle('active',mode==='Reel No');
+    document.getElementById('modeMillTop').classList.toggle('active',mode==='Mill No');
+  }
+
+  function scanMessage(msg,kind){
+    const el=document.getElementById('scanMsgTop');
+    el.textContent=msg;
+    el.className='scanMsg show '+(kind||'');
+  }
+
+  function normalizeTopScan(raw){
+    let s=String(raw||'').trim();
+    if(!s) return null;
+    if(/^\d+(?:\.0+)?$/.test(s)) return String(parseInt(Number(s),10));
+
+    const cleaned=s
+      .replace(/reel\s*(no|number)?\s*[:#=\-]?\s*/ig,' ')
+      .replace(/mill\s*(reel\s*)?(no|number)?\s*[:#=\-]?\s*/ig,' ')
+      .trim();
+
+    if(/^\d+(?:\.0+)?$/.test(cleaned)) return String(parseInt(Number(cleaned),10));
+
+    const nums=s.match(/\d{3,}/g)||[];
+    const unique=[...new Set(nums)];
+    return unique.length===1 ? unique[0] : null;
+  }
+
+  async function openTopScanner(){
+    document.getElementById('scannerModalTop').classList.add('show');
+    document.getElementById('scanMsgTop').className='scanMsg';
+
+    if(typeof Html5Qrcode==='undefined'){
+      scanMessage('Scanner library could not load. Check internet connection.','bad');
+      return;
+    }
+    if(topScannerRunning) return;
+
+    try{
+      topScanner=new Html5Qrcode('qrReaderTop');
+      const cfg={
+        fps:10,
+        qrbox:{width:250,height:180},
+        aspectRatio:1.333333
+      };
+      await topScanner.start(
+        {facingMode:'environment'},
+        cfg,
+        onTopScanSuccess,
+        ()=>{}
+      );
+      topScannerRunning=true;
+    }catch(err){
+      topScannerRunning=false;
+      scanMessage(
+        'Camera permission was denied. In Chrome, tap the site-controls icon near the address bar → Permissions → Camera → Allow, then reload this page.',
+        'bad'
+      );
+    }
+  }
+
+  async function closeTopScanner(){
+    if(topScanner && topScannerRunning){
+      try{await topScanner.stop();}catch(e){}
+      try{topScanner.clear();}catch(e){}
+    }
+    topScannerRunning=false;
+    topScanner=null;
+    document.getElementById('scannerModalTop').classList.remove('show');
+  }
+
+  async function onTopScanSuccess(decodedText){
+    const value=normalizeTopScan(decodedText);
+    if(!value){
+      scanMessage('Could not identify one Reel/Mill number from this code. Please scan again or enter it manually.','bad');
+      return;
+    }
+
+    scanMessage('Scanned '+topScanMode+': '+value,'ok');
+    await closeTopScanner();
+
+    const u = new URL('https://script.google.com/macros/s/AKfycbzNPHdaxSujRw2HfXqunbiCqooSehdVaFV9xIcUaVtqCiJdtx8zk0X3QzpjaOLd2fMq/exec');
+    u.searchParams.set('scan', value);
+    u.searchParams.set('searchBy', topScanMode);
+
+    loading.classList.remove('hide');
+    frame.src = u.toString();
+  }
+
+
+  frame.addEventListener('load', () => {
+    setTimeout(() => loading.classList.add('hide'), 250);
+  });
+  setTimeout(() => loading.classList.add('hide'), 9000);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js')
+        .catch(err => console.error('Service worker registration failed:', err));
     });
+  }
 
-    // Safety: hide loader even if the iframe load event is delayed by browser behavior.
-    setTimeout(() => loading.classList.add('hide'), 9000);
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'inline-block';
+  });
 
-    function updateOnlineState() {
-      offline.classList.toggle('show', !navigator.onLine);
-    }
-    window.addEventListener('online', updateOnlineState);
-    window.addEventListener('offline', updateOnlineState);
-    updateOnlineState();
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.style.display = 'none';
+  });
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-      });
-    }
-  </script>
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    installBtn.style.display = 'none';
+  });
+</script>
 </body>
 </html>
