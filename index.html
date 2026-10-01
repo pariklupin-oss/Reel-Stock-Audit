@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b315b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Reel Stock">
+  <title>Reel Stock System</title>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
+  <style>
+    :root {
+      --navy: #0b315b;
+      --blue: #0f6ee8;
+      --bg: #eef3f8;
+      --text: #142033;
+      --muted: #667085;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    .app-shell {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--white);
+    }
+
+    .topbar {
+      flex: 0 0 auto;
+      min-height: 54px;
+      padding: env(safe-area-inset-top) 12px 0;
+      background: var(--navy);
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+
+    .topbar-inner {
+      width: 100%;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      object-fit: cover;
+      background: white;
+      flex: 0 0 auto;
+    }
+
+    .brand {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: .2px;
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      opacity: .84;
+      margin-top: 3px;
+    }
+
+    .open-btn {
+      border: 1px solid rgba(255,255,255,.45);
+      background: rgba(255,255,255,.08);
+      color: white;
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .frame-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      position: relative;
+      background: white;
+    }
+
+    iframe {
+      border: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: white;
+    }
+
+    .loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f7f9fc;
+      z-index: 3;
+      transition: opacity .2s ease;
+    }
+
+    .loading.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .load-card {
+      width: min(88vw, 360px);
+      text-align: center;
+      background: white;
+      padding: 24px;
+      border-radius: 18px;
+      box-shadow: 0 12px 34px rgba(11,49,91,.12);
+      border: 1px solid #e0e7ef;
+    }
+
+    .load-logo {
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      object-fit: cover;
+      margin-bottom: 12px;
+    }
+
+    .load-title {
+      font-weight: 800;
+      font-size: 20px;
+      margin-bottom: 7px;
+    }
+
+    .load-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #d9e3ef;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      margin: 18px auto 0;
+      animation: spin .85s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .offline {
+      display: none;
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      z-index: 10;
+      background: #fff2cc;
+      color: #6f4b00;
+      border: 1px solid #e5c35d;
+      border-radius: 11px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .offline.show { display: block; }
+
+    @media (display-mode: standalone) {
+      .topbar { min-height: 50px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <img class="brand-icon" src="./icons/icon-192.png" alt="Reel Stock">
+        <div class="brand">
+          <div class="brand-title">REEL STOCK SYSTEM</div>
+          <div class="brand-sub">Starish Autopac Pvt. Ltd.</div>
+        </div>
+        <a class="open-btn" href="https://script.google.com/macros/s/AKfycbzNPHdaxSujRw2HfXqunbiCqooSehdVaFV9xIcUaVtqCiJdtx8zk0X3QzpjaOLd2fMq/exec" target="_blank" rel="noopener">Open Direct</a>
+      </div>
+    </header>
+
+    <section class="frame-wrap">
+      <div class="loading" id="loading">
+        <div class="load-card">
+          <img class="load-logo" src="./icons/icon-192.png" alt="">
+          <div class="load-title">Reel Stock System</div>
+          <div class="load-sub">Loading the live physical reel counting system...</div>
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <iframe
+        id="appFrame"
+        title="Reel Stock System"
+        src="https://script.google.com/macros/s/AKfycbzNPHdaxSujRw2HfXqunbiCqooSehdVaFV9xIcUaVtqCiJdtx8zk0X3QzpjaOLd2fMq/exec"
+        allow="camera; clipboard-read; clipboard-write"
+        referrerpolicy="strict-origin-when-cross-origin">
+      </iframe>
+    </section>
+  </main>
+
+  <div id="offline" class="offline">
+    Internet connection is required to access the live Reel Stock System.
+  </div>
+
+  <script>
+    const frame = document.getElementById('appFrame');
+    const loading = document.getElementById('loading');
+    const offline = document.getElementById('offline');
+
+    frame.addEventListener('load', () => {
+      setTimeout(() => loading.classList.add('hide'), 250);
+    });
+
+    // Safety: hide loader even if the iframe load event is delayed by browser behavior.
+    setTimeout(() => loading.classList.add('hide'), 9000);
+
+    function updateOnlineState() {
+      offline.classList.toggle('show', !navigator.onLine);
+    }
+    window.addEventListener('online', updateOnlineState);
+    window.addEventListener('offline', updateOnlineState);
+    updateOnlineState();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
